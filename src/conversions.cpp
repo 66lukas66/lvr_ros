@@ -49,6 +49,7 @@ bool fromMeshBufferToMeshGeometryMessage(
     auto buffer_vertices = buffer->getVertices();
     for (unsigned int i = 0; i < n_vertices; i++)
     {
+
         mesh_geometry.vertices[i].x = buffer_vertices[i * 3];
         mesh_geometry.vertices[i].y = buffer_vertices[i * 3 + 1];
         mesh_geometry.vertices[i].z = buffer_vertices[i * 3 + 2];

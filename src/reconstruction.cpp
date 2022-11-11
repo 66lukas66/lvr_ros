@@ -42,10 +42,10 @@ using std::move;
 #include <lvr2/texture/Texture.hpp>
 #include <lvr2/algorithm/Texturizer.hpp>
 
-#include <lvr2/geometry/HalfEdgeMesh.hpp>
+//#include <lvr2/geometry/HalfEdgeMesh.hpp>
 #include <lvr2/geometry/BaseVector.hpp>
 #include <lvr2/geometry/Normal.hpp>
-#include <lvr2/algorithm/FinalizeAlgorithms.hpp>
+//#include <lvr2/algorithm/FinalizeAlgorithms.hpp>
 #include <lvr2/geometry/BoundingBox.hpp>
 #include <lvr2/algorithm/NormalAlgorithms.hpp>
 #include <lvr2/algorithm/CleanupAlgorithms.hpp>
@@ -517,11 +517,17 @@ bool Reconstruction::createMeshBufferFromPointBuffer(
         );
 
         // Set texturizer
+        /*old version
         lvr2::Texturizer<Vec> texturizer(
             config.texelSize,
             config.texMinClusterSize,
             config.texMaxClusterSize
         );
+        */
+
+        auto texturizer = std::shared_ptr<lvr2::Texturizer<Vec>>(new lvr2::Texturizer<Vec>( config.texelSize,config.texMinClusterSize,config.texMaxClusterSize));
+
+
         materializer.setTexturizer(texturizer);
 
         // Generate materials
