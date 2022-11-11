@@ -118,12 +118,13 @@ inline const mesh_msgs::MeshGeometry toMeshGeometry(
 
   for(auto fH : hem.faces())
   {
-    mesh_msgs::TriangleIndices indices;
+    mesh_msgs::MeshTriangleIndices_<allocator<void>> indices;
     auto vHs = hem.getVerticesOfFace(fH);
     indices.vertex_indices[0] = new_indices[vHs[0]];
     indices.vertex_indices[1] = new_indices[vHs[1]];
     indices.vertex_indices[2] = new_indices[vHs[2]];
     mesh_msg.faces.push_back(indices);
+
   }
 
   for(auto vH : hem.vertices())
@@ -137,7 +138,9 @@ inline const mesh_msgs::MeshGeometry toMeshGeometry(
   return mesh_msg;
 }
 
+
 template<typename CoordType>
+
 inline const mesh_msgs::MeshGeometryStamped toMeshGeometryStamped(
     const lvr2::HalfEdgeMesh<lvr2::BaseVector<CoordType>>& hem,
     const std::string& frame_id,
