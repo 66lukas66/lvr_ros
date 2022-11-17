@@ -16,6 +16,8 @@ set(PACKAGE_DEPENDENCIES
   geometry_msgs
   label_manager
   tf2_ros
+
+
 )
 
 find_package(catkin REQUIRED COMPONENTS ${PACKAGE_DEPENDENCIES})
@@ -59,6 +61,7 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
   ${LVR2_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
+
 )
 
 generate_dynamic_reconfigure_options(

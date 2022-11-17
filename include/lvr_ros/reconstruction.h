@@ -35,13 +35,17 @@
 #include <mesh_msgs/GetGeometry.h>
 #include <mesh_msgs/GetMaterials.h>
 #include <mesh_msgs/GetTexture.h>
-#include <mesh_msgs/GetUUID.h>
+//#include <mesh_msgs/GetUUID.h>
 #include <mesh_msgs/GetVertexColors.h>
 #include <mesh_msgs/GetVertexCosts.h>
-
+/*
 #include <mesh_msgs/TriangleMesh.h>
 #include <mesh_msgs/TriangleMeshStamped.h>
+*/
+
+#include "mesh_msgs/TriangleMeshStamped.h"
 #include <mesh_msgs/MeshTexture.h>
+
 
 #include <lvr2/geometry/BaseVector.hpp>
 #include <lvr2/io/PointBuffer.hpp>
@@ -84,7 +88,9 @@ private:
     bool service_getGeometry(mesh_msgs::GetGeometry::Request& req, mesh_msgs::GetGeometry::Response& res);
     bool service_getMaterials(mesh_msgs::GetMaterials::Request& req, mesh_msgs::GetMaterials::Response& res);
     bool service_getTexture(mesh_msgs::GetTexture::Request& req, mesh_msgs::GetTexture::Response& res);
-    bool service_getUUID(mesh_msgs::GetUUID::Request& req, mesh_msgs::GetUUID::Response& res);
+
+   // bool service_getUUID(mesh_msgs::GetUUID::Request& req, mesh_msgs::GetUUID::Response& res);
+
     bool service_getVertexColors(mesh_msgs::GetVertexColors::Request& req, mesh_msgs::GetVertexColors::Response& res);
 
     // Subscriber callback
@@ -102,6 +108,7 @@ private:
      * version of LVR_ROS will be able to generate both messages.
      */
     bool createMeshMessageFromPointCloud(const sensor_msgs::PointCloud2& cloud, mesh_msgs::TriangleMeshStamped& mesh);
+
     bool createMeshBufferFromPointBuffer(PointBufferPtr& point_buffer, lvr2::MeshBufferPtr& mesh_buffer);
 
     // Utility

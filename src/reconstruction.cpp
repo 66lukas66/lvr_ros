@@ -110,7 +110,7 @@ Reconstruction::Reconstruction()
     srv_get_geometry_ = node_handle.advertiseService("get_geometry", &Reconstruction::service_getGeometry, this);
     srv_get_materials_ = node_handle.advertiseService("get_materials", &Reconstruction::service_getMaterials, this);
     srv_get_texture_ = node_handle.advertiseService("get_texture", &Reconstruction::service_getTexture, this);
-    srv_get_uuid_ = node_handle.advertiseService("get_uuid", &Reconstruction::service_getUUID, this);
+  //  srv_get_uuid_ = node_handle.advertiseService("get_uuid", &Reconstruction::service_getUUID, this);
     srv_get_vertex_colors_ = node_handle.advertiseService(
         "get_vertex_colors",
         &Reconstruction::service_getVertexColors,
@@ -195,7 +195,7 @@ bool Reconstruction::service_getVertexColors(
     res.mesh_vertex_colors_stamped = cache_mesh_vertex_colors_stamped;
     return true;
 }
-
+/*
 bool Reconstruction::service_getUUID(
     mesh_msgs::GetUUID::Request& req,
     mesh_msgs::GetUUID::Response& res
@@ -209,7 +209,7 @@ bool Reconstruction::service_getUUID(
     res.uuid = cache_uuid;
     return true;
 }
-
+*/
 /**********************************************************************************************************************/
 // Callbacks
 
@@ -517,15 +517,15 @@ bool Reconstruction::createMeshBufferFromPointBuffer(
         );
 
         // Set texturizer
-        /*old version
+        //old version
         lvr2::Texturizer<Vec> texturizer(
             config.texelSize,
             config.texMinClusterSize,
             config.texMaxClusterSize
         );
-        */
 
-        auto texturizer = std::shared_ptr<lvr2::Texturizer<Vec>>(new lvr2::Texturizer<Vec>( config.texelSize,config.texMinClusterSize,config.texMaxClusterSize));
+        // new version versuch
+        //auto texturizer = lvr2::Texturizer<Vec>>(new lvr2::Texturizer<Vec>( config.texelSize,config.texMinClusterSize,config.texMaxClusterSize));
 
 
         materializer.setTexturizer(texturizer);
