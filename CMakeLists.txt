@@ -25,7 +25,6 @@ find_package(LVR2 REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(MPI REQUIRED)
 
-
 add_definitions(${LVR2_DEFINITIONS} ${OpenCV_DEFINITIONS})
 
 add_action_files(

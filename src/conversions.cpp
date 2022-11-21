@@ -31,6 +31,8 @@
 #include "lvr_ros/colors.h"
 #include <omp.h>
 #include <cmath>
+#include <lvr2/geometry/ColorVertex.hpp>
+
 
 namespace lvr_ros
 {
@@ -453,7 +455,6 @@ bool writeTriangleMesh(mesh_msgs::TriangleMesh& mesh, string path)
     return false;
 }
 
-/*
 void removeDuplicates(lvr2::MeshBuffer& buffer)
 {
     lvr2::floatArr old_vertexBuffer;
@@ -464,12 +465,16 @@ void removeDuplicates(lvr2::MeshBuffer& buffer)
     size_t old_numVertices, old_numIndices;
     size_t new_numVertices, new_numIndices;
 
-    old_vertexBuffer = buffer.getVertexArray(old_numVertices);
-    old_indexBuffer = buffer.getFaceArray(old_numIndices);
+    old_vertexBuffer = buffer.getVertices();
+    old_indexBuffer = buffer.getFaceIndices();
 
-    std::map<lvr::Vertex<float>, unsigned int> vertexMap;
+
+
+
+    std::map<lvr2::floatArr, unsigned int> vertexMap;
     size_t pos;
     int index;
+    int newsizeVer = buffer.numVertices();
 
     for (int i = 0; i < old_numIndices; i++)
     {
@@ -477,10 +482,12 @@ void removeDuplicates(lvr2::MeshBuffer& buffer)
         {
             index = old_indexBuffer[3 * i + j];
 
-            lvr::Vertex<float> vertex =
-                lvr::Vertex<float>(old_vertexBuffer[3 * index],
-                                   old_vertexBuffer[3 * index + 1],
-                                   old_vertexBuffer[3 * index + 2]);
+            lvr2::floatArr  vertex(new float[3]);
+            vertex[0]= old_vertexBuffer[3 * index];
+            vertex[1]= old_vertexBuffer[3 * index+1];
+            vertex[2]= old_vertexBuffer[3 * index+2];
+
+
 
             if (vertexMap.find(vertex) != vertexMap.end())
             {
@@ -493,29 +500,41 @@ void removeDuplicates(lvr2::MeshBuffer& buffer)
                 new_vertexBuffer.push_back(vertex[1]);
                 new_vertexBuffer.push_back(vertex[2]);
 
-                vertexMap.insert(pair<lvr::Vertex<float>, unsigned int>(vertex, pos));
+                vertexMap.insert(pair<lvr2::floatArr, unsigned int>(vertex, pos));
             }
 
             new_indexBuffer.push_back(pos);
         }
     }
-    buffer.setVertexArray(new_vertexBuffer);
-    buffer.setFaceArray(new_indexBuffer);
-}
-*/
+    //Error
+    lvr2::floatArr new_Vert(new float (new_vertexBuffer.size()));
+    for (int i =0; i<new_vertexBuffer.size();i++){
+        new_Vert[i]=new_vertexBuffer[i];
+    }
+    lvr2::indexArray new_Ind(new unsigned int (new_indexBuffer.size()));
+    for (int i =0; i<new_vertexBuffer.size();i++){
+        new_Ind[i]=new_indexBuffer[i];
+    }
 
-/*
-TODO
+
+
+    buffer.setVertices(new_Vert,new_vertexBuffer.size());
+    buffer.setFaceIndices(new_Ind,new_indexBuffer.size());
+}
+
+
+
+
 void removeDuplicates(mesh_msgs::TriangleMesh& mesh)
 {
-    lvr::MeshBuffer buffer;
+    lvr2::MeshBuffer buffer;
     fromTriangleMeshToMeshBuffer(mesh, buffer);
     removeDuplicates(buffer);
 
-    lvr::MeshBufferPtr buffer_ptr = boost::make_shared<lvr::MeshBuffer>(buffer);
+    lvr2::MeshBufferPtr buffer_ptr;
     fromMeshBufferToTriangleMesh(buffer_ptr, mesh);
 }
-*/
+
 
 void intensityToTriangleRainbowColors(
     const std::vector<float>& intensity,
