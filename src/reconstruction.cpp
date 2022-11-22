@@ -73,7 +73,6 @@ using std::move;
     typedef lvr2::CudaSurface GpuSurface;
 #elif defined OPENCL_FOUND
     #define GPU_FOUND
-
     #include <lvr2/reconstruction/opencl/ClSurface.hpp>
     typedef lvr2::ClSurface GpuSurface;
 #endif
@@ -95,7 +94,7 @@ Reconstruction::Reconstruction()
         &Reconstruction::pointCloudCallback,
         this
     );
-    mesh_publisher = node_handle.advertise<mesh_msgs::TriangleMeshStamped>("/mesh", 1);
+    mesh_publisher = node_handle.advertise<mesh_msgs::MeshGeometryStamped>("/mesh", 1);
     mesh_geometry_publisher = node_handle.advertise<mesh_msgs::MeshGeometryStamped>("/mesh_geometry", 1);
 
     // Setup dynamic reconfigure
@@ -128,7 +127,7 @@ void Reconstruction::reconstruct(const lvr_ros::ReconstructGoalConstPtr& goal)
     try
     {
         lvr_ros::ReconstructResult result;
-        mesh_msgs::TriangleMeshStamped mesh; // deprecated
+        mesh_msgs::MeshGeometryStamped mesh; // deprecated
         createMeshMessageFromPointCloud(goal->cloud, mesh);
         result.mesh = cache_mesh_geometry_stamped;
         as_.setSucceeded(result, "Published mesh.");
@@ -215,7 +214,7 @@ bool Reconstruction::service_getUUID(
 
 void Reconstruction::pointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr& cloud)
 {
-    mesh_msgs::TriangleMeshStamped mesh;
+    mesh_msgs::MeshGeometryStamped mesh;
     if (!createMeshMessageFromPointCloud(*cloud, mesh))
     {
         ROS_ERROR_STREAM("Error in PointCloud callback");
@@ -239,7 +238,7 @@ void Reconstruction::reconfigureCallback(lvr_ros::ReconstructionConfig& config, 
 
 bool Reconstruction::createMeshMessageFromPointCloud(
     const sensor_msgs::PointCloud2& cloud,
-    mesh_msgs::TriangleMeshStamped& mesh_msg
+    mesh_msgs::MeshGeometryStamped& mesh_msg
 )
 {
     // Generate uuid for new mesh
@@ -287,6 +286,7 @@ bool Reconstruction::createMeshMessageFromPointCloud(
         ROS_ERROR_STREAM("Could not convert \"lvr2::MeshBuffer\" to mesh messages!");
         return false;
     }
+
 
     // Setting header frame and stamp for TriangleMesh
     mesh_msg.header.frame_id = cloud.header.frame_id;

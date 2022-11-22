@@ -35,15 +35,9 @@
 #include <mesh_msgs/GetGeometry.h>
 #include <mesh_msgs/GetMaterials.h>
 #include <mesh_msgs/GetTexture.h>
-//#include <mesh_msgs/GetUUID.h>
 #include <mesh_msgs/GetVertexColors.h>
 #include <mesh_msgs/GetVertexCosts.h>
-/*
-#include <mesh_msgs/TriangleMesh.h>
-#include <mesh_msgs/TriangleMeshStamped.h>
-*/
-
-#include "mesh_msgs/TriangleMeshStamped.h"
+#include <mesh_msgs/MeshGeometryStamped.h>
 #include <mesh_msgs/MeshTexture.h>
 
 
@@ -107,7 +101,7 @@ private:
      * discontinued in favor of the new message structure. To ensure a smooth transition between both APIs, this
      * version of LVR_ROS will be able to generate both messages.
      */
-    bool createMeshMessageFromPointCloud(const sensor_msgs::PointCloud2& cloud, mesh_msgs::TriangleMeshStamped& mesh);
+    bool createMeshMessageFromPointCloud(const sensor_msgs::PointCloud2& cloud, mesh_msgs::MeshGeometryStamped& mesh);
 
     bool createMeshBufferFromPointBuffer(PointBufferPtr& point_buffer, lvr2::MeshBufferPtr& mesh_buffer);
 

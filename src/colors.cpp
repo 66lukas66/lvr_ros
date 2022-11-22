@@ -44,7 +44,6 @@
 
 #include "lvr_ros/colors.h"
 #include <math.h>
-#include <algorithm>
 #include <std_msgs/ColorRGBA.h>
 
 namespace lvr_ros

@@ -225,14 +225,14 @@ bool fromMeshBufferToMeshMessages(
 
 bool fromMeshBufferToTriangleMesh(
     const lvr2::MeshBufferPtr& buffer,
-    mesh_msgs::TriangleMesh& mesh)
+    mesh_msgs::MeshGeometry& mesh)
 {
     return fromMeshBufferToTriangleMesh(*buffer, mesh);
 }
 
 bool fromMeshBufferToTriangleMesh(
     lvr2::MeshBuffer& buffer,
-    mesh_msgs::TriangleMesh& mesh)
+    mesh_msgs::MeshGeometry& mesh)
 {
     size_t numVertices = buffer.numVertices();
     size_t numFaces = buffer.numFaces();
@@ -244,7 +244,7 @@ bool fromMeshBufferToTriangleMesh(
     auto faces = buffer.getFaceIndices();
 
     mesh.vertices.resize(numVertices);
-    mesh.triangles.resize(numFaces);
+    mesh.faces.resize(numFaces);
 
     // copy vertices
     for (size_t i = 0; i < numVertices; i++)
@@ -257,9 +257,9 @@ bool fromMeshBufferToTriangleMesh(
     // copy triangles
     for (size_t i = 0; i < numFaces; i++)
     {
-        mesh.triangles[i].vertex_indices[0] = faces[i * 3 + 0];
-        mesh.triangles[i].vertex_indices[1] = faces[i * 3 + 1];
-        mesh.triangles[i].vertex_indices[2] = faces[i * 3 + 2];
+        mesh.faces[i].vertex_indices[0] = faces[i * 3 + 0];
+        mesh.faces[i].vertex_indices[1] = faces[i * 3 + 1];
+        mesh.faces[i].vertex_indices[2] = faces[i * 3 + 2];
     }
 
     // copy normals if available
@@ -369,7 +369,7 @@ bool fromMeshGeometryToMeshBuffer(
 }
 
 bool fromTriangleMeshToMeshBuffer(
-    const mesh_msgs::TriangleMesh& mesh,
+    const mesh_msgs::MeshGeometry & mesh,
     lvr2::MeshBuffer& buffer)
 {
     const size_t numVertices = mesh.vertices.size();
@@ -383,9 +383,9 @@ bool fromTriangleMeshToMeshBuffer(
     }
     buffer.setVertices(vertices, numVertices);
 
-    const size_t numFaces = mesh.triangles.size();
+    const size_t numFaces = mesh.faces.size();
     lvr2::indexArray faces( new unsigned int[ numVertices * 3 ] );
-    const auto& mg_faces = mesh.triangles;
+    const auto& mg_faces = mesh.faces;
     for(size_t i; i<numFaces; i++)
     {
         faces[ i * 3 + 0 ] = mg_faces[i].vertex_indices[0];
@@ -431,7 +431,7 @@ bool writeMeshBuffer(lvr2::MeshBufferPtr& buffer, string path)
     return true;
 }
 
-bool readTriangleMesh(mesh_msgs::TriangleMesh& mesh, string path)
+bool readTriangleMesh(mesh_msgs::MeshGeometry & mesh, string path)
 {
     lvr2::ModelFactory io_factory;
     lvr2::ModelPtr model = io_factory.readModel(path);
@@ -443,7 +443,7 @@ bool readTriangleMesh(mesh_msgs::TriangleMesh& mesh, string path)
     return fromMeshBufferToTriangleMesh(model->m_mesh, mesh);
 }
 
-bool writeTriangleMesh(mesh_msgs::TriangleMesh& mesh, string path)
+bool writeTriangleMesh(mesh_msgs::MeshGeometry& mesh, string path)
 {
     lvr2::MeshBufferPtr buffer_ptr = lvr2::MeshBufferPtr(new lvr2::MeshBuffer);
     if (fromTriangleMeshToMeshBuffer(mesh, *buffer_ptr))
@@ -525,7 +525,7 @@ void removeDuplicates(lvr2::MeshBuffer& buffer)
 
 
 
-void removeDuplicates(mesh_msgs::TriangleMesh& mesh)
+void removeDuplicates(mesh_msgs::MeshGeometry& mesh)
 {
     lvr2::MeshBuffer buffer;
     fromTriangleMeshToMeshBuffer(mesh, buffer);
@@ -535,10 +535,10 @@ void removeDuplicates(mesh_msgs::TriangleMesh& mesh)
     fromMeshBufferToTriangleMesh(buffer_ptr, mesh);
 }
 
-
+/*
 void intensityToTriangleRainbowColors(
     const std::vector<float>& intensity,
-    mesh_msgs::TriangleMesh& mesh,
+    mesh_msgs::MeshGeometry& mesh,
     float min,
     float max
 )
@@ -560,8 +560,10 @@ void intensityToTriangleRainbowColors(
         mesh.triangle_colors.push_back(color);
     }
 }
+*/
 
-void intensityToTriangleRainbowColors(const std::vector<float>& intensity, mesh_msgs::TriangleMesh& mesh)
+/*
+void intensityToTriangleRainbowColors(const std::vector<float>& intensity, mesh_msgs::MeshGeometry& mesh)
 {
     float min = std::numeric_limits<float>::max();
     float max = std::numeric_limits<float>::min();
@@ -574,10 +576,11 @@ void intensityToTriangleRainbowColors(const std::vector<float>& intensity, mesh_
     }
     intensityToTriangleRainbowColors(intensity, mesh, min, max);
 }
-
+ */
+/*
 void intensityToVertexRainbowColors(
     const std::vector<float>& intensity,
-    mesh_msgs::TriangleMesh& mesh,
+    mesh_msgs::MeshGeometry& mesh,
     float min,
     float max
 )
@@ -599,10 +602,10 @@ void intensityToVertexRainbowColors(
         mesh.vertex_colors.push_back(color);
     }
 }
-
+/*
 void intensityToVertexRainbowColors(
     const lvr2::DenseVertexMap<float>& intensity,
-    mesh_msgs::TriangleMesh& mesh,
+    mesh_msgs::MeshGeometry& mesh,
     float min,
     float max
 )
@@ -624,8 +627,9 @@ void intensityToVertexRainbowColors(
         mesh.triangle_colors.push_back(color);
     }
 }
-
-void intensityToVertexRainbowColors(const std::vector<float>& intensity, mesh_msgs::TriangleMesh& mesh)
+*/
+/*
+void intensityToVertexRainbowColors(const std::vector<float>& intensity, mesh_msgs::MeshGeometry& mesh)
 {
     float min = std::numeric_limits<float>::max();
     float max = std::numeric_limits<float>::min();
@@ -638,6 +642,7 @@ void intensityToVertexRainbowColors(const std::vector<float>& intensity, mesh_ms
     }
     intensityToVertexRainbowColors(intensity, mesh, min, max);
 }
+*/
 
 static inline bool hasCloudChannel(const sensor_msgs::PointCloud2& cloud, const std::string& field_name)
 {
