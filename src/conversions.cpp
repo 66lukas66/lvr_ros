@@ -29,10 +29,8 @@
 
 #include "lvr_ros/conversions.h"
 #include "lvr_ros/colors.h"
-#include <omp.h>
 #include <cmath>
 #include <lvr2/geometry/ColorVertex.hpp>
-
 
 namespace lvr_ros
 {
@@ -260,6 +258,7 @@ bool fromMeshBufferToTriangleMesh(
         mesh.faces[i].vertex_indices[0] = faces[i * 3 + 0];
         mesh.faces[i].vertex_indices[1] = faces[i * 3 + 1];
         mesh.faces[i].vertex_indices[2] = faces[i * 3 + 2];
+
     }
 
     // copy normals if available
@@ -577,10 +576,10 @@ void intensityToTriangleRainbowColors(const std::vector<float>& intensity, mesh_
     intensityToTriangleRainbowColors(intensity, mesh, min, max);
 }
  */
-/*
+
 void intensityToVertexRainbowColors(
     const std::vector<float>& intensity,
-    mesh_msgs::MeshGeometry& mesh,
+    mesh_msgs::MeshVertexColors& mesh,
     float min,
     float max
 )
@@ -605,7 +604,7 @@ void intensityToVertexRainbowColors(
 /*
 void intensityToVertexRainbowColors(
     const lvr2::DenseVertexMap<float>& intensity,
-    mesh_msgs::MeshGeometry& mesh,
+    mesh_msgs::MeshVertexColors& mesh,
     float min,
     float max
 )
@@ -628,8 +627,7 @@ void intensityToVertexRainbowColors(
     }
 }
 */
-/*
-void intensityToVertexRainbowColors(const std::vector<float>& intensity, mesh_msgs::MeshGeometry& mesh)
+void intensityToVertexRainbowColors(const std::vector<float>& intensity, mesh_msgs::MeshVertexColors& mesh)
 {
     float min = std::numeric_limits<float>::max();
     float max = std::numeric_limits<float>::min();
@@ -642,7 +640,6 @@ void intensityToVertexRainbowColors(const std::vector<float>& intensity, mesh_ms
     }
     intensityToVertexRainbowColors(intensity, mesh, min, max);
 }
-*/
 
 static inline bool hasCloudChannel(const sensor_msgs::PointCloud2& cloud, const std::string& field_name)
 {
@@ -731,7 +728,7 @@ bool fromPointCloud2ToPointBuffer(const sensor_msgs::PointCloud2& cloud, lvr2::P
         CloudIterFloat iter_n_z(cloud, "normal_z");
         lvr2::floatArr normalsData(new float[size * 3]);
         tmp_filter = filter_nan;
-        int index, i;
+        int index,i;
         for (i = 0, index = 0;
              iter_n_x != iter_n_x.end();
              ++iter_n_x, ++iter_n_y, ++iter_n_z,

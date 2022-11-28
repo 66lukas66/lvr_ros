@@ -364,10 +364,10 @@ void intensityToTriangleRainbowColors(
  * @param min       The minimal value
  * @param max       The maximal value
  */
- /*
+
 void intensityToVertexRainbowColors(
     const std::vector<float>& intensity,
-    mesh_msgs::MeshGeometry& mesh,
+    mesh_msgs::MeshVertexColors& mesh,
     float min,
     float max
 );
@@ -395,9 +395,9 @@ void intensityToVertexRainbowColors(
  * @param intensity Intensity values
  * @param mesh      ROS-TriangleMeshGeometryMessage
  */
-/*
-void intensityToVertexRainbowColors(const std::vector<float>& intensity, mesh_msgs::MeshGeometry& mesh);
-*/
+
+void intensityToVertexRainbowColors(const std::vector<float>& intensity, mesh_msgs::MeshVertexColors& mesh);
+
 
 
 bool fromPointCloud2ToPointBuffer(const sensor_msgs::PointCloud2& cloud, PointBuffer& buffer);
