@@ -663,9 +663,9 @@ static inline bool hasCloudChannel(const sensor_msgs::PointCloud2& cloud, const 
         CloudIterFloat iter_x_filter(cloud, "x");
         CloudIterFloat iter_y_filter(cloud, "y");
         CloudIterFloat iter_z_filter(cloud, "z");
-
+        int zero=0;
         // size without NaN values
-    /*    for (int i = 0; iter_x_filter != iter_x_filter.end();
+        for (int i = 0; iter_x_filter != iter_x_filter.end();
              ++iter_x_filter, ++iter_y_filter, ++iter_z_filter, i++)
         {
             if( std::isnan(*iter_x_filter) &&
@@ -674,12 +674,12 @@ static inline bool hasCloudChannel(const sensor_msgs::PointCloud2& cloud, const 
 
 
             {
-                filter_nan.push_back(i);
+                zero++;
             }
         }
-
+        ROS_INFO("Zeros %d", zero);
         filter_nan.sort();
-*/
+
         lvr2::floatArr pointData(new float[size * 3]);
 
         // copy point data
