@@ -650,159 +650,167 @@ static inline bool hasCloudChannel(const sensor_msgs::PointCloud2& cloud, const 
     return false;
 }
 
-bool fromPointCloud2ToPointBuffer(const sensor_msgs::PointCloud2& cloud, lvr2::PointBuffer& buffer)
-{
-    size_t size = cloud.height * cloud.width;
-
-    typedef sensor_msgs::PointCloud2ConstIterator<float> CloudIterFloat;
-    typedef sensor_msgs::PointCloud2ConstIterator<uint8_t> CloudIterUInt8;
-
-    std::list<int> filter_nan;
-
-    // copy point data
-    CloudIterFloat iter_x_filter(cloud, "x");
-    CloudIterFloat iter_y_filter(cloud, "y");
-    CloudIterFloat iter_z_filter(cloud, "z");
-
-    // size without NaN values
-    size = 0;
-    for (int i = 0; iter_x_filter != iter_x_filter.end();
-         ++iter_x_filter, ++iter_y_filter, ++iter_z_filter, i++)
+    bool fromPointCloud2ToPointBuffer(const sensor_msgs::PointCloud2& cloud, lvr2::PointBuffer& buffer)
     {
-        if( !std::isnan(*iter_x_filter) &&
-            !std::isnan(*iter_y_filter) &&
-            !std::isnan(*iter_z_filter))
+        size_t size = cloud.height * cloud.width;
+
+        typedef sensor_msgs::PointCloud2ConstIterator<float> CloudIterFloat;
+        typedef sensor_msgs::PointCloud2ConstIterator<uint8_t> CloudIterUInt8;
+
+        std::list<int> filter_nan;
+
+        // copy point data
+        CloudIterFloat iter_x_filter(cloud, "x");
+        CloudIterFloat iter_y_filter(cloud, "y");
+        CloudIterFloat iter_z_filter(cloud, "z");
+
+        // size without NaN values
+    /*    for (int i = 0; iter_x_filter != iter_x_filter.end();
+             ++iter_x_filter, ++iter_y_filter, ++iter_z_filter, i++)
         {
-            size++;
-        }
-        else
-        {
-            filter_nan.push_back(i);
-        }
-    }
-
-    filter_nan.sort();
-
-    lvr2::floatArr pointData(new float[size * 3]);
-
-    // copy point data
-    CloudIterFloat iter_x(cloud, "x");
-    CloudIterFloat iter_y(cloud, "y");
-    CloudIterFloat iter_z(cloud, "z");
+            if( std::isnan(*iter_x_filter) &&
+                std::isnan(*iter_y_filter) &&
+                std::isnan(*iter_z_filter))
 
 
-    std::list<int> tmp_filter = filter_nan;
-    int index, i;
-    for (i = 0, index = 0;
-         iter_x != iter_x.end();
-         ++iter_x, ++iter_y, ++iter_z,
-         index++)
-    {
-        // skip NaN point values
-        if (!tmp_filter.empty() && index == tmp_filter.front())
-        {
-            tmp_filter.pop_front();
-            continue;
+            {
+                filter_nan.push_back(i);
+            }
         }
 
-        // copy point
-        pointData[i] = *iter_x;
-        pointData[i + 1] = *iter_y;
-        pointData[i + 2] = *iter_z;
+        filter_nan.sort();
+*/
+        lvr2::floatArr pointData(new float[size * 3]);
 
-        i += 3;
+        // copy point data
+        CloudIterFloat iter_x(cloud, "x");
+        CloudIterFloat iter_y(cloud, "y");
+        CloudIterFloat iter_z(cloud, "z");
 
-    }
-    buffer.setPointArray(pointData, size);
 
-    // copy point normals if available
-    bool normalsAvailable =
-        hasCloudChannel(cloud, "normal_x")
-        && hasCloudChannel(cloud, "normal_y")
-        && hasCloudChannel(cloud, "normal_z");
-
-    if (normalsAvailable)
-    {
-        CloudIterFloat iter_n_x(cloud, "normal_x");
-        CloudIterFloat iter_n_y(cloud, "normal_y");
-        CloudIterFloat iter_n_z(cloud, "normal_z");
-        lvr2::floatArr normalsData(new float[size * 3]);
-        tmp_filter = filter_nan;
-        int index,i;
+        std::list<int> tmp_filter = filter_nan;
+        int index, i;
         for (i = 0, index = 0;
-             iter_n_x != iter_n_x.end();
-             ++iter_n_x, ++iter_n_y, ++iter_n_z,
-                 index++)
+             iter_x != iter_x.end();
+             ++iter_x, ++iter_y, ++iter_z,
+                     index++)
         {
-            // skip NaN point values
+       /*     // skip NaN point values
             if (!tmp_filter.empty() && index == tmp_filter.front())
             {
+
                 tmp_filter.pop_front();
+                pointData[i] = 0;
+                pointData[i + 1] = 0;
+                pointData[i + 2] = 0;
                 continue;
             }
-
-            // copy normal
-            normalsData[i] = *iter_n_x;
-            normalsData[i + 1] = *iter_n_y;
-            normalsData[i + 2] = *iter_n_z;
+*/
+            // copy point
+            pointData[i] = *iter_x;
+            pointData[i + 1] = *iter_y;
+            pointData[i + 2] = *iter_z;
 
             i += 3;
-        }
-        buffer.setNormalArray(normalsData, size);
-    }
 
-    // copy color data if available
-    if (hasCloudChannel(cloud, "rgb"))
-    {
-        CloudIterUInt8 iter_rgb(cloud, "rgb");
-        lvr2::ucharArr colorData(new uint8_t[size * 3]);
-        tmp_filter = filter_nan;
-        int index, i;
-        for (i = 0, index = 0; iter_rgb != iter_rgb.end();
-             ++iter_rgb, index++)
+        }
+        buffer.setPointArray(pointData, size);
+
+        // copy point normals if available
+        bool normalsAvailable =
+                hasCloudChannel(cloud, "normal_x")
+                && hasCloudChannel(cloud, "normal_y")
+                && hasCloudChannel(cloud, "normal_z");
+
+        if (normalsAvailable)
         {
-            // skip NaN point values
-            if (!tmp_filter.empty() && index == tmp_filter.front())
+            CloudIterFloat iter_n_x(cloud, "normal_x");
+            CloudIterFloat iter_n_y(cloud, "normal_y");
+            CloudIterFloat iter_n_z(cloud, "normal_z");
+            lvr2::floatArr normalsData(new float[size * 3]);
+            tmp_filter = filter_nan;
+            int index,i;
+            for (i = 0, index = 0;
+                 iter_n_x != iter_n_x.end();
+                 ++iter_n_x, ++iter_n_y, ++iter_n_z,
+                         index++)
             {
-                tmp_filter.pop_front();
-                continue;
+                // skip NaN point values
+  /*              if (!tmp_filter.empty() && index == tmp_filter.front())
+                {
+                    tmp_filter.pop_front();
+                    normalsData[i] = 0;
+                    normalsData[i + 1] = 0;
+                    normalsData[i + 2] = 0;
+                    continue;
+                }
+*/
+                // copy normal
+                normalsData[i] = *iter_n_x;
+                normalsData[i + 1] = *iter_n_y;
+                normalsData[i + 2] = *iter_n_z;
+
+                i += 3;
             }
-
-            // copy color rgb
-            colorData[i] = iter_rgb[0];
-            colorData[i + 1] = iter_rgb[1];
-            colorData[i + 2] = iter_rgb[2];
-
-            i += 3;
+            buffer.setNormalArray(normalsData, size);
         }
-        buffer.setColorArray(colorData, size);
-    }
 
-    // copy intensity if available
-    if (hasCloudChannel(cloud, "intensities"))
-    {
-        CloudIterFloat iter_int(cloud, "intensities");
-        lvr2::floatArr intensityData(new float[size]);
-        tmp_filter = filter_nan;
-        int index, i;
-        for (i = 0, index = 0; iter_int != iter_int.end();
-             ++iter_int, index++)
+        // copy color data if available
+        if (hasCloudChannel(cloud, "rgb"))
         {
-            // skip NaN point values
-            if (!tmp_filter.empty() && index == tmp_filter.front())
+            CloudIterUInt8 iter_rgb(cloud, "rgb");
+            lvr2::ucharArr colorData(new uint8_t[size * 3]);
+            tmp_filter = filter_nan;
+            int index, i;
+            for (i = 0, index = 0; iter_rgb != iter_rgb.end();
+                 ++iter_rgb, index++)
             {
-                tmp_filter.pop_front();
-                continue;
-            }
+  /*              // skip NaN point values
+                if (!tmp_filter.empty() && index == tmp_filter.front())
+                {
+                    colorData[i] = 0;
+                    colorData[i + 1] = 0;
+                    colorData[i + 2] = 0;
+                    tmp_filter.pop_front();
+                    continue;
+                }
+*/
+                // copy color rgb
+                colorData[i] = iter_rgb[0];
+                colorData[i + 1] = iter_rgb[1];
+                colorData[i + 2] = iter_rgb[2];
 
-            // copy intensity
-            intensityData[i] = *iter_int;
-            i++;
+                i += 3;
+            }
+            buffer.setColorArray(colorData, size);
         }
-        buffer.addFloatChannel(intensityData, "intensity", size, 1);
+
+        // copy intensity if available
+        if (hasCloudChannel(cloud, "intensities"))
+        {
+            CloudIterFloat iter_int(cloud, "intensities");
+            lvr2::floatArr intensityData(new float[size]);
+            tmp_filter = filter_nan;
+            int index, i;
+            for (i = 0, index = 0; iter_int != iter_int.end();
+                 ++iter_int, index++)
+            {
+  /*              // skip NaN point values
+                if (!tmp_filter.empty() && index == tmp_filter.front())
+                {
+                    intensityData[i] = 1;
+                    tmp_filter.pop_front();
+                    continue;
+                }
+*/
+                // copy intensity
+                intensityData[i] = *iter_int;
+                i++;
+            }
+            buffer.addFloatChannel(intensityData, "intensity", size, 1);
+        }
+        return true;
     }
-    return true;
-}
 
 bool fromMeshGeometryMessageToMeshBuffer(
     const mesh_msgs::MeshGeometry& mesh_geometry,
