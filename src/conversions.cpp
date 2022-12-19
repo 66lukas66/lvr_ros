@@ -657,7 +657,6 @@ static inline bool hasCloudChannel(const sensor_msgs::PointCloud2& cloud, const 
         typedef sensor_msgs::PointCloud2ConstIterator<float> CloudIterFloat;
         typedef sensor_msgs::PointCloud2ConstIterator<uint8_t> CloudIterUInt8;
 
-        std::list<int> filter_nan;
 
         // copy point data
         CloudIterFloat iter_x_filter(cloud, "x");
@@ -678,7 +677,6 @@ static inline bool hasCloudChannel(const sensor_msgs::PointCloud2& cloud, const 
             }
         }
         ROS_INFO("Zeros %d", zero);
-        filter_nan.sort();
 
         lvr2::floatArr pointData(new float[size * 3]);
 
@@ -688,7 +686,6 @@ static inline bool hasCloudChannel(const sensor_msgs::PointCloud2& cloud, const 
         CloudIterFloat iter_z(cloud, "z");
 
 
-        std::list<int> tmp_filter = filter_nan;
         int index, i;
         for (i = 0, index = 0;
              iter_x != iter_x.end();
@@ -728,7 +725,6 @@ static inline bool hasCloudChannel(const sensor_msgs::PointCloud2& cloud, const 
             CloudIterFloat iter_n_y(cloud, "normal_y");
             CloudIterFloat iter_n_z(cloud, "normal_z");
             lvr2::floatArr normalsData(new float[size * 3]);
-            tmp_filter = filter_nan;
             int index,i;
             for (i = 0, index = 0;
                  iter_n_x != iter_n_x.end();
@@ -760,7 +756,6 @@ static inline bool hasCloudChannel(const sensor_msgs::PointCloud2& cloud, const 
         {
             CloudIterUInt8 iter_rgb(cloud, "rgb");
             lvr2::ucharArr colorData(new uint8_t[size * 3]);
-            tmp_filter = filter_nan;
             int index, i;
             for (i = 0, index = 0; iter_rgb != iter_rgb.end();
                  ++iter_rgb, index++)
@@ -790,7 +785,6 @@ static inline bool hasCloudChannel(const sensor_msgs::PointCloud2& cloud, const 
         {
             CloudIterFloat iter_int(cloud, "intensities");
             lvr2::floatArr intensityData(new float[size]);
-            tmp_filter = filter_nan;
             int index, i;
             for (i = 0, index = 0; iter_int != iter_int.end();
                  ++iter_int, index++)
