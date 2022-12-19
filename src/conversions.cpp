@@ -662,21 +662,7 @@ static inline bool hasCloudChannel(const sensor_msgs::PointCloud2& cloud, const 
         CloudIterFloat iter_x_filter(cloud, "x");
         CloudIterFloat iter_y_filter(cloud, "y");
         CloudIterFloat iter_z_filter(cloud, "z");
-        int zero=0;
-        // size without NaN values
-        for (int i = 0; iter_x_filter != iter_x_filter.end();
-             ++iter_x_filter, ++iter_y_filter, ++iter_z_filter, i++)
-        {
-            if( std::isnan(*iter_x_filter) &&
-                std::isnan(*iter_y_filter) &&
-                std::isnan(*iter_z_filter))
 
-
-            {
-                zero++;
-            }
-        }
-        ROS_INFO("Zeros %d", zero);
 
         lvr2::floatArr pointData(new float[size * 3]);
 
@@ -692,17 +678,7 @@ static inline bool hasCloudChannel(const sensor_msgs::PointCloud2& cloud, const 
              ++iter_x, ++iter_y, ++iter_z,
                      index++)
         {
-       /*     // skip NaN point values
-            if (!tmp_filter.empty() && index == tmp_filter.front())
-            {
 
-                tmp_filter.pop_front();
-                pointData[i] = 0;
-                pointData[i + 1] = 0;
-                pointData[i + 2] = 0;
-                continue;
-            }
-*/
             // copy point
             pointData[i] = *iter_x;
             pointData[i + 1] = *iter_y;
@@ -731,16 +707,7 @@ static inline bool hasCloudChannel(const sensor_msgs::PointCloud2& cloud, const 
                  ++iter_n_x, ++iter_n_y, ++iter_n_z,
                          index++)
             {
-                // skip NaN point values
-  /*              if (!tmp_filter.empty() && index == tmp_filter.front())
-                {
-                    tmp_filter.pop_front();
-                    normalsData[i] = 0;
-                    normalsData[i + 1] = 0;
-                    normalsData[i + 2] = 0;
-                    continue;
-                }
-*/
+
                 // copy normal
                 normalsData[i] = *iter_n_x;
                 normalsData[i + 1] = *iter_n_y;
@@ -760,16 +727,7 @@ static inline bool hasCloudChannel(const sensor_msgs::PointCloud2& cloud, const 
             for (i = 0, index = 0; iter_rgb != iter_rgb.end();
                  ++iter_rgb, index++)
             {
-  /*              // skip NaN point values
-                if (!tmp_filter.empty() && index == tmp_filter.front())
-                {
-                    colorData[i] = 0;
-                    colorData[i + 1] = 0;
-                    colorData[i + 2] = 0;
-                    tmp_filter.pop_front();
-                    continue;
-                }
-*/
+
                 // copy color rgb
                 colorData[i] = iter_rgb[0];
                 colorData[i + 1] = iter_rgb[1];
@@ -789,14 +747,7 @@ static inline bool hasCloudChannel(const sensor_msgs::PointCloud2& cloud, const 
             for (i = 0, index = 0; iter_int != iter_int.end();
                  ++iter_int, index++)
             {
-  /*              // skip NaN point values
-                if (!tmp_filter.empty() && index == tmp_filter.front())
-                {
-                    intensityData[i] = 1;
-                    tmp_filter.pop_front();
-                    continue;
-                }
-*/
+
                 // copy intensity
                 intensityData[i] = *iter_int;
                 i++;
