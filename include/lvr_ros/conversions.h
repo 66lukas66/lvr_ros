@@ -70,164 +70,161 @@
 #include <sensor_msgs/point_cloud2_iterator.h>
 
 
-namespace lvr_ros
-{
+namespace lvr_ros {
 
-using Vec = lvr2::BaseVector<float>;
-using PointBuffer = lvr2::PointBuffer;
-using PointBufferPtr = lvr2::PointBufferPtr;
+    using Vec = lvr2::BaseVector<float>;
+    using PointBuffer = lvr2::PointBuffer;
+    using PointBufferPtr = lvr2::PointBufferPtr;
 
-struct MaterialGroup
-{
-    int texture_index;
-    unsigned char r;
-    unsigned char g;
-    unsigned char b;
-    std::vector<unsigned int> faceBuffer;
-};
+    struct MaterialGroup {
+        int texture_index;
+        unsigned char r;
+        unsigned char g;
+        unsigned char b;
+        std::vector<unsigned int> faceBuffer;
+    };
 
-typedef std::vector <boost::shared_ptr<MaterialGroup>> GroupVector;
-typedef boost::shared_ptr <MaterialGroup> MaterialGroupPtr;
+    typedef std::vector <boost::shared_ptr<MaterialGroup>> GroupVector;
+    typedef boost::shared_ptr <MaterialGroup> MaterialGroupPtr;
 
 
-template<typename CoordType>
-inline const mesh_msgs::MeshGeometry toMeshGeometry(
-    const lvr2::HalfEdgeMesh<lvr2::BaseVector<CoordType>>& hem,
-    const lvr2::VertexMap<lvr2::Normal<CoordType>>& normals = lvr2::DenseVertexMap<lvr2::Normal<CoordType>>())
-{
-  mesh_msgs::MeshGeometry mesh_msg;
-  mesh_msg.vertices.reserve(hem.numVertices());
-  mesh_msg.faces.reserve(hem.numFaces());
+    template<typename CoordType>
+    inline const mesh_msgs::MeshGeometry toMeshGeometry(
+            const lvr2::HalfEdgeMesh <lvr2::BaseVector<CoordType>> &hem,
+            const lvr2::VertexMap <lvr2::Normal<CoordType>> &normals = lvr2::DenseVertexMap < lvr2::Normal <
+                                                                       CoordType >> ()) {
+        mesh_msgs::MeshGeometry mesh_msg;
+        mesh_msg.vertices.reserve(hem.numVertices());
+        mesh_msg.faces.reserve(hem.numFaces());
 
-  mesh_msg.vertex_normals.reserve(normals.numValues());
+        mesh_msg.vertex_normals.reserve(normals.numValues());
 
-  lvr2::DenseVertexMap<size_t> new_indices;
-  new_indices.reserve(hem.numVertices());
+        lvr2::DenseVertexMap <size_t> new_indices;
+        new_indices.reserve(hem.numVertices());
 
-  size_t k = 0;
-  for(auto vH : hem.vertices())
-  {
-    new_indices.insert(vH, k++);
-    const auto& pi = hem.getVertexPosition(vH);
-    geometry_msgs::Point p;
-    p.x = pi.x; p.y = pi.y; p.z = pi.z;
-    mesh_msg.vertices.push_back(p);
-  }
+        size_t k = 0;
+        for (auto vH: hem.vertices()) {
+            new_indices.insert(vH, k++);
+            const auto &pi = hem.getVertexPosition(vH);
+            geometry_msgs::Point p;
+            p.x = pi.x;
+            p.y = pi.y;
+            p.z = pi.z;
+            mesh_msg.vertices.push_back(p);
+        }
 
-  for(auto fH : hem.faces())
-  {
-    mesh_msgs::MeshTriangleIndices_<allocator<void>> indices;
-    auto vHs = hem.getVerticesOfFace(fH);
-    indices.vertex_indices[0] = new_indices[vHs[0]];
-    indices.vertex_indices[1] = new_indices[vHs[1]];
-    indices.vertex_indices[2] = new_indices[vHs[2]];
-    mesh_msg.faces.push_back(indices);
+        for (auto fH: hem.faces()) {
+            mesh_msgs::MeshTriangleIndices_ <allocator<void>> indices;
+            auto vHs = hem.getVerticesOfFace(fH);
+            indices.vertex_indices[0] = new_indices[vHs[0]];
+            indices.vertex_indices[1] = new_indices[vHs[1]];
+            indices.vertex_indices[2] = new_indices[vHs[2]];
+            mesh_msg.faces.push_back(indices);
 
-  }
+        }
 
-  for(auto vH : hem.vertices())
-  {
-    const auto& n = normals[vH];
-    geometry_msgs::Point v;
-    v.x = n.x; v.y = n.y; v.z = n.z;
-    mesh_msg.vertex_normals.push_back(v);
-  }
+        for (auto vH: hem.vertices()) {
+            const auto &n = normals[vH];
+            geometry_msgs::Point v;
+            v.x = n.x;
+            v.y = n.y;
+            v.z = n.z;
+            mesh_msg.vertex_normals.push_back(v);
+        }
 
-  return mesh_msg;
-}
-
-
-template<typename CoordType>
-
-inline const mesh_msgs::MeshGeometryStamped toMeshGeometryStamped(
-    const lvr2::HalfEdgeMesh<lvr2::BaseVector<CoordType>>& hem,
-    const std::string& frame_id,
-    const std::string& uuid,
-    const lvr2::VertexMap<lvr2::Normal<CoordType>>& normals = lvr2::DenseVertexMap<lvr2::Normal<CoordType>>(),
-    const ros::Time& stamp = ros::Time::now())
-{
-    mesh_msgs::MeshGeometryStamped mesh_msg;
-    mesh_msg.mesh_geometry = toMeshGeometry<CoordType>(hem, normals);
-    mesh_msg.uuid = uuid;
-    mesh_msg.header.frame_id = frame_id;
-    mesh_msg.header.stamp = stamp;
-    return mesh_msg;
-}
-
-inline const mesh_msgs::MeshVertexCosts toVertexCosts(
-    const lvr2::VertexMap<float>& costs,
-    const size_t num_values,
-    const float default_value)
-{
-  mesh_msgs::MeshVertexCosts costs_msg;
-  costs_msg.costs.resize(num_values, default_value);
-  for(auto vH : costs){
-    costs_msg.costs[vH.idx()] = costs[vH];
-  }
-  return costs_msg;
-}
-
-inline const mesh_msgs::MeshVertexCostsStamped toVertexCostsStamped(
-    const lvr2::VertexMap<float>& costs,
-    const size_t num_values,
-    const float default_value,
-    const std::string& name,
-    const std::string& frame_id,
-    const std::string& uuid,
-    const ros::Time& stamp = ros::Time::now()
-)
-{
-  mesh_msgs::MeshVertexCostsStamped mesh_msg;
-  mesh_msg.mesh_vertex_costs = toVertexCosts(costs, num_values, default_value);
-  mesh_msg.uuid = uuid;
-  mesh_msg.type = name;
-  mesh_msg.header.frame_id = frame_id;
-  mesh_msg.header.stamp = stamp;
-  return mesh_msg;
-}
-
-inline const mesh_msgs::MeshVertexCosts toVertexCosts(const lvr2::DenseVertexMap<float>& costs)
-{
-    mesh_msgs::MeshVertexCosts costs_msg;
-    costs_msg.costs.reserve(costs.numValues());
-    for(auto vH : costs){
-        costs_msg.costs.push_back(costs[vH]);
+        return mesh_msg;
     }
-    return costs_msg;
-}
-
-inline const mesh_msgs::MeshVertexCostsStamped toVertexCostsStamped(
-    const lvr2::DenseVertexMap<float>& costs,
-    const std::string& name,
-    const std::string& frame_id,
-    const std::string& uuid,
-    const ros::Time& stamp = ros::Time::now()
-    )
-{
-    mesh_msgs::MeshVertexCostsStamped mesh_msg;
-    mesh_msg.mesh_vertex_costs = toVertexCosts(costs);
-    mesh_msg.uuid = uuid;
-    mesh_msg.type = name;
-    mesh_msg.header.frame_id = frame_id;
-    mesh_msg.header.stamp = stamp;
-    return mesh_msg;
-}
 
 
-bool fromMeshBufferToMeshGeometryMessage(
-    const lvr2::MeshBufferPtr& buffer,
-    mesh_msgs::MeshGeometry& mesh_geometry
-);
+    template<typename CoordType>
+
+    inline const mesh_msgs::MeshGeometryStamped toMeshGeometryStamped(
+            const lvr2::HalfEdgeMesh <lvr2::BaseVector<CoordType>> &hem,
+            const std::string &frame_id,
+            const std::string &uuid,
+            const lvr2::VertexMap <lvr2::Normal<CoordType>> &normals = lvr2::DenseVertexMap < lvr2::Normal <
+                                                                       CoordType >> (),
+            const ros::Time &stamp = ros::Time::now()) {
+        mesh_msgs::MeshGeometryStamped mesh_msg;
+        mesh_msg.mesh_geometry = toMeshGeometry<CoordType>(hem, normals);
+        mesh_msg.uuid = uuid;
+        mesh_msg.header.frame_id = frame_id;
+        mesh_msg.header.stamp = stamp;
+        return mesh_msg;
+    }
+
+    inline const mesh_msgs::MeshVertexCosts toVertexCosts(
+            const lvr2::VertexMap<float> &costs,
+            const size_t num_values,
+            const float default_value) {
+        mesh_msgs::MeshVertexCosts costs_msg;
+        costs_msg.costs.resize(num_values, default_value);
+        for (auto vH: costs) {
+            costs_msg.costs[vH.idx()] = costs[vH];
+        }
+        return costs_msg;
+    }
+
+    inline const mesh_msgs::MeshVertexCostsStamped toVertexCostsStamped(
+            const lvr2::VertexMap<float> &costs,
+            const size_t num_values,
+            const float default_value,
+            const std::string &name,
+            const std::string &frame_id,
+            const std::string &uuid,
+            const ros::Time &stamp = ros::Time::now()
+    ) {
+        mesh_msgs::MeshVertexCostsStamped mesh_msg;
+        mesh_msg.mesh_vertex_costs = toVertexCosts(costs, num_values, default_value);
+        mesh_msg.uuid = uuid;
+        mesh_msg.type = name;
+        mesh_msg.header.frame_id = frame_id;
+        mesh_msg.header.stamp = stamp;
+        return mesh_msg;
+    }
+
+    inline const mesh_msgs::MeshVertexCosts toVertexCosts(const lvr2::DenseVertexMap<float> &costs) {
+        mesh_msgs::MeshVertexCosts costs_msg;
+        costs_msg.costs.reserve(costs.numValues());
+        for (auto vH: costs) {
+            costs_msg.costs.push_back(costs[vH]);
+        }
+        return costs_msg;
+    }
+
+    inline const mesh_msgs::MeshVertexCostsStamped toVertexCostsStamped(
+            const lvr2::DenseVertexMap<float> &costs,
+            const std::string &name,
+            const std::string &frame_id,
+            const std::string &uuid,
+            const ros::Time &stamp = ros::Time::now()
+    ) {
+        mesh_msgs::MeshVertexCostsStamped mesh_msg;
+        mesh_msg.mesh_vertex_costs = toVertexCosts(costs);
+        mesh_msg.uuid = uuid;
+        mesh_msg.type = name;
+        mesh_msg.header.frame_id = frame_id;
+        mesh_msg.header.stamp = stamp;
+        return mesh_msg;
+    }
+
+
+    bool fromMeshBufferToMeshGeometryMessage(
+            const lvr2::MeshBufferPtr &buffer,
+            mesh_msgs::MeshGeometry &mesh_geometry
+    );
 
 /// Convert lvr2::MeshBuffer to various messages for services
-bool fromMeshBufferToMeshMessages(
-    const lvr2::MeshBufferPtr& buffer,
-    mesh_msgs::MeshGeometry& mesh_geometry,
-    mesh_msgs::MeshMaterials& mesh_materials,
-    mesh_msgs::MeshVertexColors& mesh_vertex_colors,
-    boost::optional<std::vector<mesh_msgs::MeshTexture>&> texture_cache,
+    bool fromMeshBufferToMeshMessages(
+            const lvr2::MeshBufferPtr &buffer,
+            mesh_msgs::MeshGeometry &mesh_geometry,
+            mesh_msgs::MeshMaterials &mesh_materials,
+            mesh_msgs::MeshVertexColors &mesh_vertex_colors,
+            boost::optional<std::vector < mesh_msgs::MeshTexture> &
+
+    > texture_cache,
     std::string mesh_uuid
-);
+    );
 
 /**
  * @brief Convert lvr::MeshBuffer to mesh_msgs::TriangleMesh
@@ -235,45 +232,45 @@ bool fromMeshBufferToMeshMessages(
  * @param message to be returned
  * @return bool success status
  */
-bool fromMeshBufferToTriangleMesh(
-    const lvr2::MeshBufferPtr& buffer,
-    mesh_msgs::MeshGeometry& message
-);
+    bool fromMeshBufferToTriangleMesh(
+            const lvr2::MeshBufferPtr &buffer,
+            mesh_msgs::MeshGeometry &message
+    );
 
-bool fromMeshBufferToTriangleMesh(
-    lvr2::MeshBuffer& buffer,
-    mesh_msgs::MeshGeometry& message
-);
+    bool fromMeshBufferToTriangleMesh(
+            lvr2::MeshBuffer &buffer,
+            mesh_msgs::MeshGeometry &message
+    );
 
-bool fromMeshGeometryToMeshBuffer(
-    const mesh_msgs::MeshGeometryConstPtr& mesh_geometry_ptr,
-    lvr2::MeshBufferPtr& buffer_ptr
-);
+    bool fromMeshGeometryToMeshBuffer(
+            const mesh_msgs::MeshGeometryConstPtr &mesh_geometry_ptr,
+            lvr2::MeshBufferPtr &buffer_ptr
+    );
 
-bool fromMeshGeometryToMeshBuffer(
-    const mesh_msgs::MeshGeometryConstPtr& mesh_geometry_ptr,
-    lvr2::MeshBuffer& buffer
-);
+    bool fromMeshGeometryToMeshBuffer(
+            const mesh_msgs::MeshGeometryConstPtr &mesh_geometry_ptr,
+            lvr2::MeshBuffer &buffer
+    );
 
-bool fromMeshGeometryToMeshBuffer(
-    const mesh_msgs::MeshGeometryPtr& mesh_geometry_ptr,
-    lvr2::MeshBufferPtr& buffer_ptr
-);
+    bool fromMeshGeometryToMeshBuffer(
+            const mesh_msgs::MeshGeometryPtr &mesh_geometry_ptr,
+            lvr2::MeshBufferPtr &buffer_ptr
+    );
 
-bool fromMeshGeometryToMeshBuffer(
-    const mesh_msgs::MeshGeometry& mesh_geometry,
-    lvr2::MeshBufferPtr& buffer_ptr
-);
+    bool fromMeshGeometryToMeshBuffer(
+            const mesh_msgs::MeshGeometry &mesh_geometry,
+            lvr2::MeshBufferPtr &buffer_ptr
+    );
 
-bool fromMeshGeometryToMeshBuffer(
-    const mesh_msgs::MeshGeometryPtr& mesh_geometry_ptr,
-    lvr2::MeshBuffer& buffer
-);
+    bool fromMeshGeometryToMeshBuffer(
+            const mesh_msgs::MeshGeometryPtr &mesh_geometry_ptr,
+            lvr2::MeshBuffer &buffer
+    );
 
-bool fromMeshGeometryToMeshBuffer(
-    const mesh_msgs::MeshGeometry& mesh_geometry,
-    lvr2::MeshBuffer& buffer
-);
+    bool fromMeshGeometryToMeshBuffer(
+            const mesh_msgs::MeshGeometry &mesh_geometry,
+            lvr2::MeshBuffer &buffer
+    );
 
 /**
  * @brief Convert mesh_msgs::TriangleMesh to lvr::MeshBuffer
@@ -281,10 +278,10 @@ bool fromMeshGeometryToMeshBuffer(
  * @param buffer to be returned
  * @return bool success status
  */
-bool fromTriangleMeshToMeshBuffer(
-    const mesh_msgs::MeshGeometry& mesh,
-    lvr2::MeshBuffer& buffer
-);
+    bool fromTriangleMeshToMeshBuffer(
+            const mesh_msgs::MeshGeometry &mesh,
+            lvr2::MeshBuffer &buffer
+    );
 
 /* TODO
 void removeDuplicates(lvr2::MeshBuffer& buffer);
@@ -299,7 +296,7 @@ void removeDuplicates(mesh_msgs::TriangleMesh& mesh);
  *
  * @return LVR-MeshBufferPointer
  */
-bool readMeshBuffer(lvr2::MeshBufferPtr& buffer, string path);
+    bool readMeshBuffer(lvr2::MeshBufferPtr &buffer, string path);
 
 /**
  * @brief Writes a LVR-MeshBufferPointer to a file
@@ -307,7 +304,7 @@ bool readMeshBuffer(lvr2::MeshBufferPtr& buffer, string path);
  * @param mesh   LVR-MeshBufferPointer
  * @param path   Path to a MeshFile
  */
-bool writeMeshBuffer(lvr2::MeshBufferPtr& mesh, string path);
+    bool writeMeshBuffer(lvr2::MeshBufferPtr &mesh, string path);
 
 /**
  * @brief Reads a file and returns a lvr_ros/TriangleMesh
@@ -317,7 +314,7 @@ bool writeMeshBuffer(lvr2::MeshBufferPtr& mesh, string path);
  *
  * @return bool indicating sucess/failure
  */
-bool readTriangleMesh(mesh_msgs::MeshGeometry& mesh, string path);
+    bool readTriangleMesh(mesh_msgs::MeshGeometry &mesh, string path);
 
 /**
  * @brief Writes a ROS-TriangleMeshGeometryMessage to a file
@@ -325,7 +322,7 @@ bool readTriangleMesh(mesh_msgs::MeshGeometry& mesh, string path);
  * @param mesh   ROS-TriangleMeshGeometryMessage
  * @param path   Path to a MeshFile
  */
-bool writeTriangleMesh(mesh_msgs::MeshGeometry& mesh, string path);
+    bool writeTriangleMesh(mesh_msgs::MeshGeometry &mesh, string path);
 
 /**
  * @brief Writes intensity values as rainbow colors for the triangle colors
@@ -333,11 +330,11 @@ bool writeTriangleMesh(mesh_msgs::MeshGeometry& mesh, string path);
  * @param intensity Intensity values as std::vector<float>
  * @param mesh      ROS-TriangleMeshGeometryMessage
  */
- /*
-void intensityToTriangleRainbowColors(
-    const std::vector<float>& intensity,
-    mesh_msgs::MeshGeometry& mesh);
-*/
+    /*
+   void intensityToTriangleRainbowColors(
+       const std::vector<float>& intensity,
+       mesh_msgs::MeshGeometry& mesh);
+   */
 
 
 /**
@@ -348,14 +345,14 @@ void intensityToTriangleRainbowColors(
  * @param min       The minimal value
  * @param max       The maximal value
  */
- /*
-void intensityToTriangleRainbowColors(
-    const std::vector<float>& intensity,
-    mesh_msgs::MeshGeometry& mesh,
-    float min,
-    float max
-);
-*/
+    /*
+   void intensityToTriangleRainbowColors(
+       const std::vector<float>& intensity,
+       mesh_msgs::MeshGeometry& mesh,
+       float min,
+       float max
+   );
+   */
 /**
  * @brief Writes intensity values as rainbow colors for the vertex colors
  *
@@ -365,12 +362,12 @@ void intensityToTriangleRainbowColors(
  * @param max       The maximal value
  */
 
-void intensityToVertexRainbowColors(
-    const std::vector<float>& intensity,
-    mesh_msgs::MeshVertexColors& mesh,
-    float min,
-    float max
-);
+    void intensityToVertexRainbowColors(
+            const std::vector<float> &intensity,
+            mesh_msgs::MeshVertexColors &mesh,
+            float min,
+            float max
+    );
 
 /**
  * @brief Writes intensity values as rainbow colors for the vertex colors
@@ -380,14 +377,14 @@ void intensityToVertexRainbowColors(
  * @param min       The minimal value
  * @param max       The maximal value
  */
- /*
-void intensityToVertexRainbowColors(
-    const lvr2::DenseVertexMap<float>& intensity,
-    mesh_msgs::MeshGeometry& mesh,
-    float min,
-    float max
-);
-  */
+    /*
+   void intensityToVertexRainbowColors(
+       const lvr2::DenseVertexMap<float>& intensity,
+       mesh_msgs::MeshGeometry& mesh,
+       float min,
+       float max
+   );
+     */
 /*
 /**
  * @brief Writes intensity values as rainbow colors for the vertex colors
@@ -396,11 +393,16 @@ void intensityToVertexRainbowColors(
  * @param mesh      ROS-TriangleMeshGeometryMessage
  */
 
-void intensityToVertexRainbowColors(const std::vector<float>& intensity, mesh_msgs::MeshVertexColors& mesh);
+    void intensityToVertexRainbowColors(const std::vector<float> &intensity, mesh_msgs::MeshVertexColors &mesh);
 
-
-
-bool fromPointCloud2ToPointBuffer(const sensor_msgs::PointCloud2& cloud, PointBuffer& buffer);
+    /**
+     * converts from pointcloud2 to lvr2::PointBuffer
+     * nan Points are covert as nan Point
+     * @param cloud
+     * @param buffer
+     * @return
+     */
+    bool fromPointCloud2ToPointBuffer(const sensor_msgs::PointCloud2 &cloud, PointBuffer &buffer);
 
 /**
  * @brief converts lvr2::Pointbuffer to pointcloud2.
@@ -410,7 +412,8 @@ bool fromPointCloud2ToPointBuffer(const sensor_msgs::PointCloud2& cloud, PointBu
  * @param frame the frame of the converted pointcloud2
  * @param cloud the converted pointcloud2
  */
-void PointBufferToPointCloud2(const lvr2::PointBufferPtr& buffer, std::string frame, sensor_msgs::PointCloud2Ptr& cloud);
+    void
+    PointBufferToPointCloud2(const lvr2::PointBufferPtr &buffer, std::string frame, sensor_msgs::PointCloud2Ptr &cloud);
 
 /**
  * @brief converts pointcloud2 to a newly created Pointerbuffer.
@@ -421,7 +424,7 @@ void PointBufferToPointCloud2(const lvr2::PointBufferPtr& buffer, std::string fr
  *
  * @return 
  */
-void PointCloud2ToPointBuffer(const sensor_msgs::PointCloud2Ptr& cloud, lvr2::PointBufferPtr& buffer);
+    void PointCloud2ToPointBuffer(const sensor_msgs::PointCloud2Ptr &cloud, lvr2::PointBufferPtr &buffer);
 
 
 /**
@@ -430,10 +433,10 @@ void PointCloud2ToPointBuffer(const sensor_msgs::PointCloud2Ptr& cloud, lvr2::Po
  * @param buffer to be returned
  * @return bool success status
  */
-bool fromMeshGeometryMessageToMeshBuffer(
-    const mesh_msgs::MeshGeometry& mesh_geometry,
-    const lvr2::MeshBufferPtr& buffer
-);
+    bool fromMeshGeometryMessageToMeshBuffer(
+            const mesh_msgs::MeshGeometry &mesh_geometry,
+            const lvr2::MeshBufferPtr &buffer
+    );
 
 } // end namespace
 
